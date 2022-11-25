@@ -34,4 +34,19 @@ def create():
     response.autocorrect_location_header = False
     return response
 
+
+@app.route("/<id>/cars", methods=["GET"])
+def queryState(id):
+
+    global cityGame
+    city = cityGame[id]
+    city.step()
+    currentCars = city.getCars()
+    currentLights = city.getTrafficLights()
+
+    response = jsonify({"currentCars": currentCars, 
+                                "currentLights": currentLights})
+
+    return response
+
 app.run()
