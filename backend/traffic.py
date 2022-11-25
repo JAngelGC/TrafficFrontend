@@ -58,6 +58,15 @@ class Car(Agent):
         self.old_speed = speed
         self.street = street
 
+        
+
+
+class City(Model):
+    def __init__(self):
+        super().__init__()
+        self.space = ContinuousSpace(100, 100, True)
+        self.schedule = SimultaneousActivation(self)
+
         # Creating streets
         streets = []        
         for dataStreet in dataStreets:
@@ -87,13 +96,7 @@ class Car(Agent):
             s3 = streets[dataSetStreet["info"][2]] if dataSetStreet["info"][2] != None else None 
             streets[dataSetStreet["id"]].setStreet([s1, s2, s3])
 
-
-
-class City(Model):
-    def __init__(self):
-        super().__init__()
-        self.space = ContinuousSpace(100, 100, True)
-        self.schedule = SimultaneousActivation(self)
     
     def step(self):
         self.schedule.step()
+    
