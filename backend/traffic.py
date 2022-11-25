@@ -7,6 +7,11 @@ from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation, SimultaneousActivation
 
+# File imports
+from data import dataStreets
+from data import dataCars
+from data import dataSetStreets
+
 
 class TrafficLight(Agent):
     def __init__(self, model: Model, pos, state, time):
