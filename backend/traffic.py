@@ -58,6 +58,36 @@ class Car(Agent):
         self.old_speed = speed
         self.street = street
 
+        # Creating streets
+        streets = []        
+        for dataStreet in dataStreets:
+            currentLight  = (TrafficLight(self, dataStreet["light"]["pos"], dataStreet["light"]["state"], dataStreet["light"]["time"]))
+            currentStreet = Street(self, dataStreet["start"], dataStreet["end"], dataStreet["direction"], currentLight)
+            
+            # traffic_lights.append(currentLight)
+            streets.append(currentStreet)
+            
+            self.space.place_agent(currentLight, currentLight.pos)
+            self.schedule.add(currentLight)
+        
+            self.space.place_agent(currentStreet, currentStreet.start)
+            self.schedule.add(currentStreet)
+        
+        
+        
+        # Creating cars
+        for dataCar in dataCars:
+            currentCar = Car(self, dataCar["pos"], dataCar["speed"], streets[dataCar["street"]])
+            self.space.place_agent(currentCar, currentCar.pos)
+            self.schedule.add(currentCar)
+
+        for dataSetStreet in dataSetStreets:
+            s1 = streets[dataSetStreet["info"][0]] if dataSetStreet["info"][0] != None else None 
+            s2 = streets[dataSetStreet["info"][1]] if dataSetStreet["info"][1] != None else None 
+            s3 = streets[dataSetStreet["info"][2]] if dataSetStreet["info"][2] != None else None 
+            streets[dataSetStreet["id"]].setStreet([s1, s2, s3])
+
+
 
 class City(Model):
     def __init__(self):
