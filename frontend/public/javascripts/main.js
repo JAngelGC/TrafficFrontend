@@ -158,3 +158,143 @@ const createStreet = (scene, id, start, end, direction) => {
   scene.add(street);
   return street;
 };
+
+const createLight = (scene) => {
+  // Create light
+  const pointLight = new THREE.PointLight(0xffffff);
+
+  // Set position
+  pointLight.position.x = 0;
+  pointLight.position.y = 0;
+  pointLight.position.z = 100;
+  scene.add(pointLight);
+};
+
+const addToDOM = (renderer, camera) => {
+  // Add renderer to the DOM
+  // renderer.setSize(window.innerWidth, window.innerHeight);
+  // renderer.setSize();
+  document.body.appendChild(renderer.domElement);
+
+  // console.log(camera["rotation"]);
+
+  // Set the background color
+  renderer.setClearColor(0x75a878, 1);
+};
+
+const updateCity = (
+  renderer,
+  scene,
+  camera,
+  lights,
+  cars,
+  cityID,
+  frame_rate,
+  previous_time
+) => {
+  const render = async () => {
+    const now = Date.now();
+    const elapsed_time = now - previous_time;
+
+    if (elapsed_time >= frame_rate) {
+      // console.log("_____________________________________");
+      const res = await fetch(`${baseURL}/${cityID}/cars`);
+      const data = await res.json();
+
+      // console.log("-------------------");
+      // console.log(data);
+      // console.log("-------------------");
+
+      const dataCar = data["currentCars"];
+
+      for (const newCarState of dataCar) {
+        for (const car of cars) {
+          if (car["carId"] == newCarState["id"]) {
+            car.position.x = newCarState.pos[0] + dx;
+            car.position.y = newCarState.pos[1] + dy;
+          }
+        }
+      }
+      const dataLights = data["currentLights"];
+      for (const newLightState of dataLights) {
+        for (const light of lights) {
+          if (light["lightId"] == newLightState["id"]) {
+            // console.log(light);
+            light.material.color.setHex(
+              trafficLightColors[newLightState.color]
+            );
+          }
+        }
+      }
+
+      previous_time = now;
+    }
+
+    requestAnimationFrame(render);
+    renderer.render(scene, camera);
+  };
+
+  render();
+};
+
+const createCity = async () => {
+  // Visualization
+  const frame_rate = 200; // Refresh screen every 200 ms
+  const previous_time = Date.now();
+  const { scene, camera, renderer } = createView();
+  createLight(scene);
+  addToDOM(renderer, camera);
+
+  // Create city
+  const { cityID, stateCars, stateStreets, stateLights } = await getCity();
+  // console.log("-------------------");
+  // console.log(stateStreets);
+
+  // const pg = createPlayground(scene);
+
+  // Create streets
+  const streets = [];
+  for (const street of stateStreets) {
+    streets.push(
+      createStreet(
+        scene,
+        street["id"],
+        street["start"],
+        street["end"],
+        street["direction"]
+      )
+    );
+  }
+
+  // Create traffic lights
+  const lights = [];
+  for (const light of stateLights) {
+    lights.push(
+      createTrafficLights(scene, light["id"], light["pos"], light["color"])
+    );
+  }
+
+  // Create cars
+  const cars = [];
+  for (const car of stateCars) {
+    cars.push(
+      createCar(scene, car["id"], car["pos"], car["direction"], 0xff00ff)
+    );
+  }
+
+  // console.log("CARS: ", cars);
+  // console.log("state: ", state);
+
+  updateCity(
+    renderer,
+    scene,
+    camera,
+    lights,
+    cars,
+    cityID,
+    frame_rate,
+    previous_time
+  );
+};
+
+createCity();
