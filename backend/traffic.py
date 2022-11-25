@@ -48,6 +48,12 @@ class Street(Agent):
         self.direction = direction
         self.nextStreet = { "right": None, "forward": None, "left": None }
 
+    def setStreet(self, nextStreet):
+        self.nextStreet = {"left": nextStreet[0],
+                            "forward": nextStreet[1],
+                            "right": nextStreet[2]
+                            }
+
 
 
 class Car(Agent):
@@ -57,6 +63,43 @@ class Car(Agent):
         self.speed = speed
         self.old_speed = speed
         self.street = street
+
+    def changeLane(self, carTurn):
+        self.street = self.street.nextStreet[carTurn]
+    
+    def car_advance(self):
+        self.speed = self.old_speed
+        new_pos = np.array(self.pos) + np.array([0.5, 0.5]) * self.speed
+        self.model.space.move_agent(self, new_pos)
+
+
+    def step(self):
+
+        traffic_light = self.street.traffic_light
+                
+        distance_from_start = reduce(lambda acc, current: acc + current, np.subtract(self.street.start, self.pos))
+        distance_from_end = reduce(lambda acc, current: acc + current, np.subtract(self.street.end, self.pos))
+
+        speed_radius = 3
+        speed = abs(self.speed[0] + (self.speed[1]))
+
+        # FIX: Kinda works?
+        if (0 <= speed <= 1): speed_radius = 5
+        elif (1 < speed <= 3): speed_radius = 7
+        elif (3 < speed <= 5): speed_radius = 9
+        else: speed_radius = speed + 5
+        # speed_radius = reduce(lambda acc, current: acc + current, np.subtract(self.street.end, self.pos))
+        # print(self.unique_id, "   ", speed_radius)
+
+
+
+        neighbor_cars = [n for n in self.model.space.get_neighbors(self.pos, radius = speed_radius, include_center = False) if isinstance(n, Car) and n.street == self.street and n != self]
+        ahead_cars = [n for n in neighbor_cars if np.less(self.pos, n.pos).any()]
+
+        # If driving in "opposite" direction: Invert the sign & Get cars ahead of me
+        if (self.street.direction == "left" or self.street.direction == "down"):
+            distance_from_end = -distance_from_end
+            ahead_cars = [n for n in neighbor_cars if np.greater(self.pos, n.pos).any()]
 
         
 
