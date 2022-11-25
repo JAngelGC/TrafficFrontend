@@ -101,6 +101,58 @@ class Car(Agent):
             distance_from_end = -distance_from_end
             ahead_cars = [n for n in neighbor_cars if np.greater(self.pos, n.pos).any()]
 
+
+        # If within range of traffic light
+        if (2.5 <= distance_from_end <= 7.5):
+            if (traffic_light.state == "Red"):
+                # print("-------------------")
+                self.speed = [0, 0]
+            elif (traffic_light.state == "Green" or traffic_light.state == "Yellow"):
+                self.car_advance()
+            else:
+                self.car_advance()
+
+
+        # If cars in front of me
+        elif ahead_cars:
+            # print("AHEAD CARS: ", len(ahead_cars))
+            closest_car = min(ahead_cars, key=lambda n:
+                reduce(lambda acc, current: acc + current, abs(np.subtract(self.pos, n.pos))))
+
+            # print("CLOSEST CARS: ", closest_car.unique_id)
+            # Check distance with closest_car
+            if closest_car.speed == [0, 0]:
+                self.speed = [0, 0]
+
+            else:
+                self.old_speed = closest_car.speed
+                self.car_advance()
+
+
+
+        # ---- STREET CHANGE ---- 
+        # If going in right direction
+        # print(self.pos, "     ", self.street.start)
+        elif (self.street.direction == "right" or self.street.direction == "up"):
+            if (np.less(self.pos, self.street.start).any() or np.greater_equal(self.pos, self.street.end).all()):
+                print("------------")
+                print("LANE CHANGE")
+                carTurn = "forward"
+                self.changeLane(carTurn)
+                
+            self.car_advance()
+    
+        # If going in "opposite" direction
+        # print(self.pos, "     ", self.street.start)
+        elif (self.street.direction == "left" or self.street.direction == "down"):
+            if (np.greater(self.pos, self.street.start).any() or np.less_equal(self.pos, self.street.end).all()):
+                print("------------")
+                print("LANE CHANGE")
+                carTurn = "forward"
+                self.changeLane(carTurn)
+
+            self.car_advance()
+
         
 
 
