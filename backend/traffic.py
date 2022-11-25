@@ -43,3 +43,22 @@ class Street(Agent):
         self.direction = direction
         self.nextStreet = { "right": None, "forward": None, "left": None }
 
+
+
+class Car(Agent):
+    def __init__(self, model: Model, pos, speed, street: Street):
+        super().__init__(model.next_id(), model)
+        self.pos = pos
+        self.speed = speed
+        self.old_speed = speed
+        self.street = street
+
+
+class City(Model):
+    def __init__(self):
+        super().__init__()
+        self.space = ContinuousSpace(100, 100, True)
+        self.schedule = SimultaneousActivation(self)
+    
+    def step(self):
+        self.schedule.step()
