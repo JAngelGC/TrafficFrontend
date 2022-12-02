@@ -1,4 +1,0 @@
-numpy
-mesa
-flask
-flask_cors
