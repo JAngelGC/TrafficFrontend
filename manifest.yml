@@ -1,0 +1,4 @@
+---
+applications:
+  - name: frontend-traffic
+    command: npm start
